@@ -46,7 +46,7 @@ if (count($argv) === 1) {
         echo "\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\n";
         echo "\033[1;32m[database]\033[1;37m => le nom de la base de donnée que vous voulez crée\033[0m\n";
         echo "\033[40m\033[1;37mExemple :\n";
-        echo "\033[1;31mphp " . $filename . " \033[1;32mmysql localhost root pass bddtest\033[40m\033[1;37m pour avoir l'aide pour utiliser le script avec mysql\033[0m\n";
+        echo "\033[1;31mphp " . $filename . " \033[1;32mmysql localhost root pass bddtest\033[40m\033[1;37m\033[0m\n";
     }
     if (count($argv) === 6) {
         $host     = $argv[2];
