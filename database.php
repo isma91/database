@@ -4,6 +4,9 @@ ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_data', -1);
 $filename = basename(__FILE__);
 function function_mysql ($host, $username, $password, $database) {
+    if ($password === "[]") {
+        $password = "";
+    }
     try {
         $bdd = new PDO("mysql:host=" . $host . ";", $username, $password);
         $bdd->exec("CREATE DATABASE IF NOT EXISTS `$database`;");
@@ -40,8 +43,10 @@ if (count($argv) === 1) {
         echo "\033[1;32m[type]\033[1;37m     => le type de base de donnée (ici mysql)\n";
         echo "\033[1;32m[host]\033[1;37m     => le serveur (localhost si vous êtes en dev)\n";
         echo "\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\n";
-        echo "\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql\n";
+        echo "\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\n";
         echo "\033[1;32m[database]\033[1;37m => le nom de la base de donnée que vous voulez crée\033[0m\n";
+        echo "\033[40m\033[1;37mExemple :\n";
+        echo "\033[1;31mphp " . $filename . " \033[1;32mmysql localhost root pass bddtest\033[40m\033[1;37m pour avoir l'aide pour utiliser le script avec mysql\033[0m\n";
     }
     if (count($argv) === 6) {
         $host     = $argv[2];
