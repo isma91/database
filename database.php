@@ -1,8 +1,9 @@
 #!/usr/bin/env php
 <?php
-ini_set('xdebug.var_display_max_depth', -1);
+/*pour avoir un xdebug en entier*/
+/*ini_set('xdebug.var_display_max_depth', -1);
 ini_set('xdebug.var_display_max_children', -1);
-ini_set('xdebug.var_display_max_data', -1);
+ini_set('xdebug.var_display_max_data', -1);*/
 $GLOBALS["filename"] = basename(__FILE__);
 function function_mysql ($host, $username, $password, $database) {
     if ($password === "[]") {
@@ -29,16 +30,12 @@ function function_mysql ($host, $username, $password, $database) {
                 echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
             }
         } else {    
-            echo "le message d'erreur :\n";
+            echo "\033[41m\033[1;37mErreur :\n";
             echo $exception->getMessage();
-            echo "\nle code :\n";
-            echo $exception->getCode();
-            echo "\nla fonction :\n";
-            echo $exception->getTrace()[1]['function'];
-            echo "\nla ligne d'erreur dans la fonction : \n";
-            echo $exception->getLine();
-            echo "\nla ligne ou l'erreur s'est produit : \n";
-            echo $exception->getTrace()[1]['line'];
+            echo "\nCode d'erreur : " . $exception->getCode();
+            echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
+            echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
+            echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
         }
     }
 }
