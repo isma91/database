@@ -1,7 +1,7 @@
 # database
 ##PHP script for database
 
-just launch the php file to do some thing with database !!
+just launch the php file like a shell to do some thing with database !!
 
 you can change the file name, the help changes automatically to have the good filename;
 
