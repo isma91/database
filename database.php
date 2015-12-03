@@ -21,26 +21,27 @@ function mysql_create_table ($host, $username, $password, $database, $table, $nu
             echo "\033[40m\033[1;32mBase de donnée trouvée !!\033[0m\n";
             if (is_numeric($number)) {
                 $number = floor($number);
+                $number = (int)$number;
                 if ($number < 1) {
                     echo "\033[1;33m\033[40mErreur !!\033[1;31m [number]\033[1;33m doit être un nombre supérieur ou égal à 1 !!\033[0m\n";
                 } else {
                     $create_table = "CREATE TABLE IF NOT EXISTS `$table`(";
                     for ($i=0; $i < $number; $i = $i + 1) {
-                        echo "\033[1;37m\033[40mTapez le nom de la colonne :\033[0m ";
+                        echo "\033[1;37m\033[40mTapez le nom de la colonne : \033[0m";
                         $answer_create_table_colonne = fopen("php://stdin", "r");
                         $reponse_create_table_colonne = fgets($answer_create_table_colonne);
                         $reponse_create_table_colonne = trim($reponse_create_table_colonne);
                         $create_table = $create_table . " " . $reponse_create_table_colonne;
-                        echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...)\033[0m ";
+                        echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...) \033[0m";
                         $answer_create_table_type_donnée = fopen("php://stdin", "r");
                         $reponse_create_table_type_donnée = fgets($answer_create_table_type_donnée);
                         $reponse_create_table_type_donnée = trim($reponse_create_table_type_donnée);
                         $create_table = $create_table . " " . $reponse_create_table_type_donnée;
-                        echo "\033[1;37m\033[40mTapez les options que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: NOT NULL, PRIMARY KEY, DEFAULT etc...)\033[1;31mMettez rien si vous ne voulez pas d'option pour \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m\033[0m ";
+                        echo "\033[1;37m\033[40mTapez les options que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: NOT NULL, PRIMARY KEY, DEFAULT etc...)\033[1;31mMettez rien si vous ne voulez pas d'option pour \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m \033[0m";
                         $answer_create_table_option = fopen("php://stdin", "r");
                         $reponse_create_table_option = fgets($answer_create_table_option);
                         $reponse_create_table_option = trim($reponse_create_table_option);
-                        if ($number > 1) {
+                        if ($number > 1 && $i !== ($number - 1)) {
                             $create_table = $create_table . " " . $reponse_create_table_option . ", ";
                         } else {
                             $create_table = $create_table . " " . $reponse_create_table_option;
@@ -55,7 +56,7 @@ function mysql_create_table ($host, $username, $password, $database, $table, $nu
                     $reponse_create_table = trim($reponse_create_table);
                     $reponse_create_table = mb_strtoupper($reponse_create_table);
                     while ($reponse_create_table !== 'Y' && $reponse_create_table !== 'N') {
-                        echo "\033[1;33m\033[40mVous n'avez pas ecrit Y ou N ...\n";
+                        echo "\033[1;33m\033[40mVous n'avez pas ecrit Y ou N ...\033[0m\n";
                         echo "\033[1;37m\033[40mVoici la requete SQL final qui va crée votre tableau :\033[0m\n";
                         echo "\033[1;31m\033[40m" . $create_table . "\033[0m\n";
                         echo "\033[1;37m\033[40mVoulez-vous valider ? (Y/N) \033[0m\n";
