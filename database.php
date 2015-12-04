@@ -32,11 +32,27 @@ function mysql_create_table ($host, $username, $password, $database, $table, $nu
                         $reponse_create_table_colonne = fgets($answer_create_table_colonne);
                         $reponse_create_table_colonne = trim($reponse_create_table_colonne);
                         $create_table = $create_table . " " . $reponse_create_table_colonne;
+                        while (empty($reponse_create_table_colonne)) {
+                            echo "\033[1;33m\033[40mErreur !!\033[1;33m une colonne ne peut pas avoir un nom vide !!\033[0m\n";
+                            echo "\033[1;37m\033[40mTapez le nom de la colonne : \033[0m";
+                            $answer_create_table_colonne = fopen("php://stdin", "r");
+                            $reponse_create_table_colonne = fgets($answer_create_table_colonne);
+                            $reponse_create_table_colonne = trim($reponse_create_table_colonne);
+                            $create_table = $create_table . " " . $reponse_create_table_colonne;
+                        }
                         echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...) \033[0m";
                         $answer_create_table_type_donnée = fopen("php://stdin", "r");
                         $reponse_create_table_type_donnée = fgets($answer_create_table_type_donnée);
                         $reponse_create_table_type_donnée = trim($reponse_create_table_type_donnée);
                         $create_table = $create_table . " " . $reponse_create_table_type_donnée;
+                        while (empty($reponse_create_table_type_donnée)) {
+                            echo "\033[1;33m\033[40mErreur !!\033[1;33m une colonne ne peut pas avoir un type de donnée vide !!\033[0m\n";
+                            echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...) \033[0m";
+                            $answer_create_table_type_donnée = fopen("php://stdin", "r");
+                            $reponse_create_table_type_donnée = fgets($answer_create_table_type_donnée);
+                            $reponse_create_table_type_donnée = trim($reponse_create_table_type_donnée);
+                            $create_table = $create_table . " " . $reponse_create_table_type_donnée;
+                        }
                         echo "\033[1;37m\033[40mTapez les options que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: NOT NULL, PRIMARY KEY, DEFAULT etc...)\033[1;31mMettez rien si vous ne voulez pas d'option pour \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m \033[0m";
                         $answer_create_table_option = fopen("php://stdin", "r");
                         $reponse_create_table_option = fgets($answer_create_table_option);
