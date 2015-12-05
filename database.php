@@ -26,11 +26,11 @@ function compare_with_levenshtein ($argument_to_check, $array_to_compare) {
     }
 }
 $arguments = array("help", "mysql", "liste", "create:database", "create:table");
-foreach ($argv as $argument) {
+/*foreach ($argv as $argument) {
     var_dump($argument);
-}
+}*/
 //compare_with_levenshtein($argv[1], $arguments);
-/*
+
 function mysql_create_table ($host, $username, $password, $database, $table, $number) {
     if ($password === "[]") {
         $password = "";
@@ -270,5 +270,5 @@ if (count($argv) === 1) {
     }
 }else {
     echo "\033[1;33m\033[40mErreur !! \033[40m\033[1;37mTapez\033[1;31m ./" . $GLOBALS["filename"] . " help\033[40m\033[1;37m pour avoir de l'aide !!\033[0m\n";
-}*/
+}
 ?>
