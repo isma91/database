@@ -5,31 +5,38 @@
 ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_data', -1);*/
 $GLOBALS["filename"] = basename(__FILE__);
-function compare_with_levenshtein ($argument_to_check, $array_to_compare) {
+function compare_with_levenshtein ($array_argument_to_check, $array_to_compare) {
     $distance = -1;
-    foreach ($array_to_compare as $argument_to_compare) {
-        $levenshtein = levenshtein($argument_to_check, $argument_to_compare);
-        if ($levenshtein === 0) {
-            $closest = $argument_to_compare;
-            $distance = 0;
-            break;
+    foreach ($array_argument_to_check as $argument_to_check) {
+        foreach ($array_to_compare as $argument_to_compare) {
+            $levenshtein = levenshtein($argument_to_check, $argument_to_compare);
+            if ($levenshtein === 0) {
+                $closest = $argument_to_compare;
+                $distance = 0;
+                break;
+            }
+            if ($levenshtein <= $distance || $distance < 0) {
+                $closest  = $argument_to_compare;
+                $distance = $levenshtein;
+            }
+            if ($distance == 0) {
+                echo "Correspondance exacte trouvée : $closest\n";
+            } else {
+                echo "Vous voulez dire : $closest ?\n";
+            }
         }
-        if ($levenshtein <= $distance || $distance < 0) {
-            $closest  = $argument_to_compare;
-            $distance = $levenshtein;
-        }
-    }
-    if ($distance == 0) {
-        echo "Correspondance exacte trouvée : $closest\n";
-    } else {
-        echo "Vous voulez dire : $closest ?\n";
     }
 }
 $arguments = array("help", "mysql", "liste", "create:database", "create:table");
-/*foreach ($argv as $argument) {
-    var_dump($argument);
-}*/
-//compare_with_levenshtein($argv[1], $arguments);
+$array_argument = array();
+if (count($argv) > 1) {
+    for ($j=0; $j < count($argv); $j++) {
+        if ($j >= 1) {
+            array_push($array_argument, $argv[$j]);
+        }
+    }
+}
+compare_with_levenshtein($array_argument, $arguments);
 
 function mysql_create_table ($host, $username, $password, $database, $table, $number) {
     if ($password === "[]") {
