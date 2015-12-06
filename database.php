@@ -34,14 +34,13 @@ function compare_with_levenshtein ($array_argument_to_check, $array_to_compare) 
 $arguments = array("help", "mysql", "liste", "create:database", "create:table");
 $array_argument = array();
 if (count($argv) > 1) {
-    for ($j=0; $j < count($argv); $j++) {
+    for ($j = 0; $j < count($argv); $j = $j + 1) {
         if ($j >= 1) {
             array_push($array_argument, $argv[$j]);
         }
     }
 }
 compare_with_levenshtein($array_argument, $arguments);
-
 function mysql_create_table ($host, $username, $password, $database, $table, $number) {
     if ($password === "[]") {
         $password = "";
@@ -63,7 +62,7 @@ function mysql_create_table ($host, $username, $password, $database, $table, $nu
                     echo "\033[1;33m\033[40mErreur !!\033[1;31m [number]\033[1;33m doit être un nombre supérieur ou égal à 1 !!\033[0m\n";
                 } else {
                     $create_table = "CREATE TABLE IF NOT EXISTS `$table`(";
-                    for ($i=0; $i < $number; $i = $i + 1) {
+                    for ($i = 0; $i < $number; $i = $i + 1) {
                         echo "\033[1;37m\033[40mTapez le nom de la colonne : \033[0m";
                         $answer_create_table_colonne = fopen("php://stdin", "r");
                         $reponse_create_table_colonne = fgets($answer_create_table_colonne);
