@@ -6,6 +6,8 @@ ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_data', -1);*/
 $GLOBALS["filename"] = basename(__FILE__);
 function compare_with_levenshtein ($array_argument_to_check, $array_to_compare) {
+    $good_writted_arguments = array();
+    $bad_writted_arguments = array();
     $distance = -1;
     foreach ($array_argument_to_check as $argument_to_check) {
         foreach ($array_to_compare as $argument_to_compare) {
@@ -20,8 +22,10 @@ function compare_with_levenshtein ($array_argument_to_check, $array_to_compare) 
                 $distance = $levenshtein;
             }
             if ($distance == 0) {
+                array_push($good_writted_arguments, $closest);
                 echo "Correspondance exacte trouvée : $closest\n";
             } else {
+                array_push($bad_writted_arguments, $closest);
                 echo "Vous voulez dire : $closest ?\n";
             }
         }
