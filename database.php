@@ -1,11 +1,37 @@
 #!/usr/bin/env php
 <?php
-/*pour avoir un xdebug en entier*/
-/*ini_set('xdebug.var_display_max_depth', -1);
-ini_set('xdebug.var_display_max_children', -1);
-ini_set('xdebug.var_display_max_data', -1);*/
+/**
+* Database.php
+*
+* Script PHP pour utiliser votre type de base de donnée préférée
+*
+* PHP Version 5.6.14-0+deb8u1 (cli) (built: Oct  4 2015 16:13:10)
+*
+* @category Model
+* @package  Model
+* @author   Ismail Aydogmus <ismaydogmus@gmail.com>
+* @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+* @link     https://github.com/isma91/database/blob/master/database.php
+*/
+/**
+* Enlever les commentaire si vous voulez avoir un var_dump complet 
+*ini_set('xdebug.var_display_max_depth', -1);
+*ini_set('xdebug.var_display_max_children', -1);
+*ini_set('xdebug.var_display_max_data', -1);
+*/
 $GLOBALS["filename"] = basename(__FILE__);
-function compare_with_levenshtein ($array_argument_to_check, $array_to_compare) {
+/**
+* Compare_With_levenshtein
+*
+* Utilise la fonction levenshtein pour corriger les arguments mal ecrit
+*
+* @param  Array $array_argument_to_check les aguments ecrit
+* @param  Array $array_to_compare        les aguments à comparer
+* @throws PDOException;                  des exceptions personnaliser
+* @return echo;                          liste les bon et les mauvais arguments
+*/
+function Compare_With_levenshtein($array_argument_to_check, $array_to_compare)
+{
     $good_writted_arguments = array();
     $bad_writted_arguments = array();
     $distance = -1;
@@ -28,8 +54,24 @@ function compare_with_levenshtein ($array_argument_to_check, $array_to_compare) 
             array_push($bad_writted_arguments, $closest);
         }
     }
-    var_dump($good_writted_arguments);
-    var_dump($bad_writted_arguments);
+    if (empty($bad_writted_arguments)) {
+        echo "\033[40m\033[1;32mPas de mauvais aurgument écrit !!\033[0m\n";
+    } elseif (empty($good_writted_arguments)) {
+        echo "\033[1;33m\033[40mErreur !! Mauvais arguments écrit !! Voulez-vous écrire ceci ?\033[0m\n";
+        foreach ($bad_writted_arguments as $bad_arguments) {
+            echo "\033[40m\033[1;31m" . $bad_arguments . "\033[1;33m\033[0m\n";
+        }
+    } elseif (!empty($bad_writted_arguments) && !empty($good_writted_arguments)) {
+        echo "\033[1;33m\033[40mErreur !! Bon et mauvais arguments écrit !! Voici la liste :\033[0m\n";
+        echo "\033[40m\033[1;32mBon aurgument écrit :\033[0m\n";
+        foreach ($good_writted_arguments as $good_arguments) {
+            echo "\033[40m\033[1;31m" . $good_arguments . "\033[1;33m\033[0m\n";
+        }
+        echo "\033[40m\033[1;32mMauvais aurgument écrit :\033[0m\n";
+        foreach ($bad_writted_arguments as $bad_arguments) {
+            echo "\033[40m\033[1;31m" . $bad_arguments . "\033[1;33m\033[0m\n";
+        }
+    }
 }
 $arguments = array("help", "mysql", "liste", "create:database", "create:table");
 $array_argument = array();
@@ -40,8 +82,25 @@ if (count($argv) > 1) {
         }
     }
 }
-compare_with_levenshtein($array_argument, $arguments);
-function mysql_create_table ($host, $username, $password, $database, $table, $number) {
+Compare_With_levenshtein($array_argument, $arguments);
+/**
+* Mysql_Create_table
+*
+* Crée une table dans une base de donnée de type Mysql, si la base de donnée
+* n'existe pas, on demande à l'utilisateur si il veut le créer et créer le  
+* tableau dans la base de donnée crée précédemment
+*
+* @param  String  $host     le server, localhost si c'est local ou générallement une adresse ip
+* @param  String  $username le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String  $password le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @param  String  $database le nom de la bae de donnée ou on va crée le tableau
+* @param  String  $table    le nom du talbeau que l'on va crée
+* @param  Integer $number   le nombre de champs (colonne) que l'on va crée dans le tableau
+* @throws PDOException;     des exceptions personnaliser
+* @return echo;             vous ecrit si le tableau est crée ou non
+*/
+function Mysql_Create_table($host, $username, $password, $database, $table, $number)
+{
     if ($password === "[]") {
         $password = "";
     }
@@ -62,116 +121,129 @@ function mysql_create_table ($host, $username, $password, $database, $table, $nu
                     echo "\033[1;33m\033[40mErreur !!\033[1;31m [number]\033[1;33m doit être un nombre supérieur ou égal à 1 !!\033[0m\n";
                 } else {
                     $create_table = "CREATE TABLE IF NOT EXISTS `$table`(";
-                        for ($i = 0; $i < $number; $i = $i + 1) {
+                    for ($i = 0; $i < $number; $i = $i + 1) {
+                        echo "\033[1;37m\033[40mTapez le nom de la colonne : \033[0m";
+                        $answer_create_table_colonne = fopen("php://stdin", "r");
+                        $reponse_create_table_colonne = fgets($answer_create_table_colonne);
+                        $reponse_create_table_colonne = trim($reponse_create_table_colonne);
+                        $create_table = $create_table . " " . $reponse_create_table_colonne;
+                        while (empty($reponse_create_table_colonne)) {
+                            echo "\033[1;33m\033[40mErreur !!\033[1;33m une colonne ne peut pas avoir un nom vide !!\033[0m\n";
                             echo "\033[1;37m\033[40mTapez le nom de la colonne : \033[0m";
                             $answer_create_table_colonne = fopen("php://stdin", "r");
                             $reponse_create_table_colonne = fgets($answer_create_table_colonne);
                             $reponse_create_table_colonne = trim($reponse_create_table_colonne);
                             $create_table = $create_table . " " . $reponse_create_table_colonne;
-                            while (empty($reponse_create_table_colonne)) {
-                                echo "\033[1;33m\033[40mErreur !!\033[1;33m une colonne ne peut pas avoir un nom vide !!\033[0m\n";
-                                echo "\033[1;37m\033[40mTapez le nom de la colonne : \033[0m";
-                                $answer_create_table_colonne = fopen("php://stdin", "r");
-                                $reponse_create_table_colonne = fgets($answer_create_table_colonne);
-                                $reponse_create_table_colonne = trim($reponse_create_table_colonne);
-                                $create_table = $create_table . " " . $reponse_create_table_colonne;
-                            }
+                        }
+                        echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...) \033[0m";
+                        $answer_create_table_type_donnée = fopen("php://stdin", "r");
+                        $reponse_create_table_type_donnée = fgets($answer_create_table_type_donnée);
+                        $reponse_create_table_type_donnée = trim($reponse_create_table_type_donnée);
+                        $reponse_create_table_type_donnée = strtoupper($reponse_create_table_type_donnée);
+                        $create_table = $create_table . " " . $reponse_create_table_type_donnée;
+                        while (empty($reponse_create_table_type_donnée)) {
+                            echo "\033[1;33m\033[40mErreur !!\033[1;33m une colonne ne peut pas avoir un type de donnée vide !!\033[0m\n";
                             echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...) \033[0m";
                             $answer_create_table_type_donnée = fopen("php://stdin", "r");
                             $reponse_create_table_type_donnée = fgets($answer_create_table_type_donnée);
                             $reponse_create_table_type_donnée = trim($reponse_create_table_type_donnée);
-                            $reponse_create_table_type_donnée = strtoupper($reponse_create_table_type_donnée);
                             $create_table = $create_table . " " . $reponse_create_table_type_donnée;
-                            while (empty($reponse_create_table_type_donnée)) {
-                                echo "\033[1;33m\033[40mErreur !!\033[1;33m une colonne ne peut pas avoir un type de donnée vide !!\033[0m\n";
-                                echo "\033[1;37m\033[40mTapez le type de donnée que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: INT, VARCHAR(255), TEXT, DATE etc...) \033[0m";
-                                $answer_create_table_type_donnée = fopen("php://stdin", "r");
-                                $reponse_create_table_type_donnée = fgets($answer_create_table_type_donnée);
-                                $reponse_create_table_type_donnée = trim($reponse_create_table_type_donnée);
-                                $create_table = $create_table . " " . $reponse_create_table_type_donnée;
-                            }
-                            echo "\033[1;37m\033[40mTapez les options que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: NOT NULL, PRIMARY KEY, DEFAULT etc...)\033[1;31mMettez rien si vous ne voulez pas d'option pour \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m \033[0m";
-                            $answer_create_table_option = fopen("php://stdin", "r");
-                            $reponse_create_table_option = fgets($answer_create_table_option);
-                            $reponse_create_table_option = trim($reponse_create_table_option);
-                            if ($number > 1 && $i !== ($number - 1)) {
-                                $create_table = $create_table . " " . $reponse_create_table_option . ", ";
-                            } else {
-                                $create_table = $create_table . " " . $reponse_create_table_option;
-                            }
                         }
-                        $create_table = $create_table . " )";
-echo "\033[1;37m\033[40mVoici la requete SQL final qui va crée votre tableau :\033[0m\n";
-echo "\033[1;31m\033[40m" . $create_table . "\033[0m\n";
-echo "\033[1;37m\033[40mVoulez-vous valider ? (Y/N) \033[0m\n";
-$answer_create_table = fopen("php://stdin", "r");
-$reponse_create_table = fgets($answer_create_table);
-$reponse_create_table = trim($reponse_create_table);
-$reponse_create_table = mb_strtoupper($reponse_create_table);
-while ($reponse_create_table !== 'Y' && $reponse_create_table !== 'N') {
-    echo "\033[1;33m\033[40mVous n'avez pas ecrit Y ou N ...\033[0m\n";
-    echo "\033[1;37m\033[40mVoici la requete SQL final qui va crée votre tableau :\033[0m\n";
-    echo "\033[1;31m\033[40m" . $create_table . "\033[0m\n";
-    echo "\033[1;37m\033[40mVoulez-vous valider ? (Y/N) \033[0m\n";
-    $answer_create_table = fopen("php://stdin", "r");
-    $reponse_create_table = fgets($answer_create_table);
-    $reponse_create_table = trim($reponse_create_table);
-    $reponse_create_table = mb_strtoupper($reponse_create_table);
-}
-if ($reponse_create_table === "Y") {
-    echo "\033[40m\033[1;37mCréation du tableau \033[1;31m" . $table . "\033[1;37m dans la base de donnée \033[1;31m" . $database . "\033[1;37m ...\033[0m\n";
-    $bdd->exec($create_table);
-    echo "\033[40m\033[1;32mLe tableau \033[1;31m" . $table . "\033[1;32m a été crée dans la base de donnée \033[1;31m" . $database . "\033[1;32m !!\033[0m\n";
-} elseif ($reponse_create_table === "N") {
-    echo "\033[40m\033[1;32mAu revoir !!\033[0m\n";
-}
-}
-} else {
-    echo "\033[1;33m\033[40mErreur !!\033[1;31m [number]\033[1;33m doit être un nombre !!\033[0m\n";
-}
-}
-} catch (PDOException $exception) {
-    if ($exception->getCode() === 2005) {
-        echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
-    } elseif ($exception->getCode() === 1045) {
-        if ($password === "") {
-            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
-        } else {
-            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+                        echo "\033[1;37m\033[40mTapez les options que va avoir \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m (ex: NOT NULL, PRIMARY KEY, DEFAULT etc...)\033[1;31mMettez rien si vous ne voulez pas d'option pour \033[1;32m" . $reponse_create_table_colonne . "\033[1;37m \033[0m";
+                        $answer_create_table_option = fopen("php://stdin", "r");
+                        $reponse_create_table_option = fgets($answer_create_table_option);
+                        $reponse_create_table_option = trim($reponse_create_table_option);
+                        if ($number > 1 && $i !== ($number - 1)) {
+                            $create_table = $create_table . " " . $reponse_create_table_option . ", ";
+                        } else {
+                            $create_table = $create_table . " " . $reponse_create_table_option;
+                        }
+                    }
+                    $create_table = $create_table . " )";
+                    echo "\033[1;37m\033[40mVoici la requete SQL final qui va crée votre tableau :\033[0m\n";
+                    echo "\033[1;31m\033[40m" . $create_table . "\033[0m\n";
+                    echo "\033[1;37m\033[40mVoulez-vous valider ? (Y/N) \033[0m\n";
+                    $answer_create_table = fopen("php://stdin", "r");
+                    $reponse_create_table = fgets($answer_create_table);
+                    $reponse_create_table = trim($reponse_create_table);
+                    $reponse_create_table = mb_strtoupper($reponse_create_table);
+                    while ($reponse_create_table !== 'Y' && $reponse_create_table !== 'N') {
+                        echo "\033[1;33m\033[40mVous n'avez pas ecrit Y ou N ...\033[0m\n";
+                        echo "\033[1;37m\033[40mVoici la requete SQL final qui va crée votre tableau :\033[0m\n";
+                        echo "\033[1;31m\033[40m" . $create_table . "\033[0m\n";
+                        echo "\033[1;37m\033[40mVoulez-vous valider ? (Y/N) \033[0m\n";
+                        $answer_create_table = fopen("php://stdin", "r");
+                        $reponse_create_table = fgets($answer_create_table);
+                        $reponse_create_table = trim($reponse_create_table);
+                        $reponse_create_table = mb_strtoupper($reponse_create_table);
+                    }
+                    if ($reponse_create_table === "Y") {
+                        echo "\033[40m\033[1;37mCréation du tableau \033[1;31m" . $table . "\033[1;37m dans la base de donnée \033[1;31m" . $database . "\033[1;37m ...\033[0m\n";
+                        $bdd->exec($create_table);
+                        echo "\033[40m\033[1;32mLe tableau \033[1;31m" . $table . "\033[1;32m a été crée dans la base de donnée \033[1;31m" . $database . "\033[1;32m !!\033[0m\n";
+                    } elseif ($reponse_create_table === "N") {
+                        echo "\033[40m\033[1;32mAu revoir !!\033[0m\n";
+                    }
+                }
+            } else {
+                echo "\033[1;33m\033[40mErreur !!\033[1;31m [number]\033[1;33m doit être un nombre !!\033[0m\n";
+            }
         }
-    } elseif ($exception->getCode() === 1049) {
-        echo "\033[1;33m\033[40mErreur !! La base de donnée \033[1;31m" . $database . "\033[1;33m n'existe pas dans le serveur \033[1;31m" . $host . "\033[1;33m !!\033[0m\n";
-        echo "\033[1;37m\033[40mVoulez-vous crée la base de donnée \033[1;31m" . $database . "\033[1;37m dans le serveur \033[1;31m" . $host . "\033[1;37m ? (Y/N)\033[0m ";
-        $answer_create_database = fopen("php://stdin", "r");
-        $reponse_create_database = fgets($answer_create_database);
-        $reponse_create_database = trim($reponse_create_database);
-        $reponse_create_database = mb_strtoupper($reponse_create_database);
-        while ($reponse_create_database !== 'Y' && $reponse_create_database !== 'N') {
-            echo "\033[1;33m\033[40mVous n'avez pas ecrit Y ou N ...\n";
+    } catch (PDOException $exception) {
+        if ($exception->getCode() === 2005) {
+            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
+        } elseif ($exception->getCode() === 1045) {
+            if ($password === "") {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            } else {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            }
+        } elseif ($exception->getCode() === 1049) {
+            echo "\033[1;33m\033[40mErreur !! La base de donnée \033[1;31m" . $database . "\033[1;33m n'existe pas dans le serveur \033[1;31m" . $host . "\033[1;33m !!\033[0m\n";
             echo "\033[1;37m\033[40mVoulez-vous crée la base de donnée \033[1;31m" . $database . "\033[1;37m dans le serveur \033[1;31m" . $host . "\033[1;37m ? (Y/N)\033[0m ";
             $answer_create_database = fopen("php://stdin", "r");
             $reponse_create_database = fgets($answer_create_database);
             $reponse_create_database = trim($reponse_create_database);
             $reponse_create_database = mb_strtoupper($reponse_create_database);
+            while ($reponse_create_database !== 'Y' && $reponse_create_database !== 'N') {
+                echo "\033[1;33m\033[40mVous n'avez pas ecrit Y ou N ...\n";
+                echo "\033[1;37m\033[40mVoulez-vous crée la base de donnée \033[1;31m" . $database . "\033[1;37m dans le serveur \033[1;31m" . $host . "\033[1;37m ? (Y/N)\033[0m ";
+                $answer_create_database = fopen("php://stdin", "r");
+                $reponse_create_database = fgets($answer_create_database);
+                $reponse_create_database = trim($reponse_create_database);
+                $reponse_create_database = mb_strtoupper($reponse_create_database);
+            }
+            if ($reponse_create_database === "Y") {
+                echo "\033[40m\033[1;32mCréation de la base de donnée !!\033[0m\n";
+                mysql_create_database($host, $username, $password, $database);
+                mysql_create_table($host, $username, $password, $database, $table, $number);
+            } elseif ($reponse_create_database === "N") {
+                echo "\033[40m\033[1;32mAu revoir !!\033[0m\n";
+            }
+        } else {
+            echo "\033[41m\033[1;37mErreur :\n";
+            echo $exception->getMessage();
+            echo "\nCode d'erreur : " . $exception->getCode();
+            echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
+            echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
+            echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
         }
-        if ($reponse_create_database === "Y") {
-            echo "\033[40m\033[1;32mCréation de la base de donnée !!\033[0m\n";
-            mysql_create_database($host, $username, $password, $database);
-            mysql_create_table($host, $username, $password, $database, $table, $number);
-        } elseif ($reponse_create_database === "N") {
-            echo "\033[40m\033[1;32mAu revoir !!\033[0m\n";
-        }
-    } else {
-        echo "\033[41m\033[1;37mErreur :\n";
-        echo $exception->getMessage();
-        echo "\nCode d'erreur : " . $exception->getCode();
-        echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
-        echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
-        echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
     }
 }
-}
-function mysql_create_database ($host, $username, $password, $database) {
+/**
+* Mysql_Create_database
+*
+* Crée une base de donnée dans un serveur de type Mysql
+*
+* @param  String $host     le server, localhost si c'est local ou générallement une adresse ip
+* @param  String $username le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String $password le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @param  String $database le nom de la bae de donnée que l'on va crée
+* @throws PDOException;     des exceptions personnaliser
+* @return echo;             vous ecrit si la base de donnée est crée ou non
+*/
+function Mysql_Create_database($host, $username, $password, $database)
+{
     if ($password === "[]") {
         $password = "";
     }
@@ -206,7 +278,17 @@ function mysql_create_database ($host, $username, $password, $database) {
         }
     }
 }
-function not_argv_enough ($type, $option = null) {
+/**
+* Not_Argv_enough
+*
+* Fonction qui previent si le nombre d'argument écrit n'est pas assez.
+*
+* @param  String $type   le type de base de donnée utiliser
+* @param  String $option l'option demander comme créer un tableau ou une base de donnée
+* @return echo;          vous ecrit quoi écrire pour avoir de l'aide
+*/
+function Not_Argv_enough($type, $option = null)
+{
     if ($option === null) {
         echo "\033[1;33m\033[40mPas assez d'argument !!\033[0m\n";
         echo "\033[40m\033[1;37mtapez\033[1;31m ./" . $GLOBALS["filename"] . " \033[1;32mhelp\033[40m\033[1;37m pour avoir de l'aide !!\033[0m\n";
@@ -216,7 +298,17 @@ function not_argv_enough ($type, $option = null) {
         echo "\033[40m\033[1;37mtapez\033[1;31m ./" . $GLOBALS["filename"] . " \033[1;32m" . $type . " " . $option . "\033[40m\033[1;37m pour avoir l'aide pour utiliser le script avec \033[1;32m" . $type . "\033[1;37m et utiliser l'option \033[1;32m" . $option . "\033[0m\n";
     }
 }
-function too_much_argv_enough ($type, $option = null) {
+/**
+* Too_Much_Argv_enough
+*
+* Fonction qui previent si le nombre d'argument écrit est trop.
+*
+* @param  String $type   le type de base de donnée utiliser
+* @param  String $option l'option demander comme créer un tableau ou une base de donnée
+* @return echo;          vous ecrit quoi écrire pour avoir de l'aide
+*/
+function Too_Much_Argv_enough($type, $option = null)
+{
     if ($option === null) {
         echo "\033[1;33m\033[40mTrop d'argument !!\033[0m\n";
         echo "\033[40m\033[1;37mtapez\033[1;31m ./" . $GLOBALS["filename"] . " \033[1;32mhelp\033[40m\033[1;37m pour avoir de l'aide !!\033[0m\n";
@@ -254,11 +346,11 @@ if (count($argv) === 1) {
             echo "\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\n";
             echo "\033[1;32m[database]\033[1;37m => le nom de la base de donnée que vous voulez crée\033[0m\n";
         } elseif (count($argv) < 7) {
-            not_argv_enough("mysql", "create:database");
+            Not_Argv_enough("mysql", "create:database");
         } elseif (count($argv) === 7) {
-            mysql_create_database($argv[3], $argv[4], $argv[5], $argv[6]);
+            Mysql_Create_database($argv[3], $argv[4], $argv[5], $argv[6]);
         } elseif (count($argv) > 7) {
-            too_much_argv_enough("mysql", "create:database");
+            Too_Much_Argv_enough("mysql", "create:database");
         }
     } elseif ($argv[2] === "create:table") {
         if (count($argv) === 3) {
@@ -271,14 +363,14 @@ if (count($argv) === 1) {
             echo "\033[1;32m[table]\033[1;37m    => le nom du tableau que vous voulez crée\n";
             echo "\033[1;32m[number]\033[1;37m    => le nombre de colonne à créer\033[0m\n";
         } elseif (count($argv) < 9) {
-            not_argv_enough("mysql", "create:table");
+            Not_Argv_enough("mysql", "create:table");
         } elseif (count($argv) === 9) {
-            mysql_create_table($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
+            Mysql_Create_table($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
         } elseif (count($argv > 9)) {
-            too_much_argv_enough("mysql", "create:table");
+            Too_Much_Argv_enough("mysql", "create:table");
         }
     }
-}else {
+} else {
     echo "\033[1;33m\033[40mErreur !! \033[40m\033[1;37mTapez\033[1;31m ./" . $GLOBALS["filename"] . " help\033[40m\033[1;37m pour avoir de l'aide !!\033[0m\n";
 }
 ?>
