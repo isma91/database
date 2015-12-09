@@ -73,7 +73,7 @@ function Compare_With_levenshtein($array_argument_to_check, $array_to_compare)
         }
     }
 }
-$arguments = array("help", "mysql", "liste", "create:database", "create:table");
+$arguments = array("help", "mysql", "liste", "create:database", "create:table", "show:databases");
 $array_argument = array();
 if (count($argv) > 1) {
     for ($j = 0; $j < count($argv); $j = $j + 1) {
@@ -83,6 +83,68 @@ if (count($argv) > 1) {
     }
 }
 Compare_With_levenshtein($array_argument, $arguments);
+/**
+* Mysql_Show_database
+*
+* Montre toute les bases de données dans un serveur de type Mysql
+*
+* @param  String $host     le server, localhost si c'est local ou générallement une adresse ip
+* @param  String $username le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String $password le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @throws PDOException;     des exceptions personnaliser
+* @return echo;             vous montres les bases de données
+*/
+function Mysql_Show_database($host, $username, $password)
+{
+    if ($password === "[]") {
+        $password = "";
+    }
+    try {
+        $bdd = new PDO("mysql:host=" . $host . ";", $username, $password);
+        echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
+        $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege->execute();
+        $donnees_privilege = $requete_privilege->fetch();
+        if (strtoupper($donnees_privilege["select_priv"]) === "N") {
+            echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits de séléction dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
+        } else {
+            $requete_database = $bdd->prepare("SHOW DATABASES;");
+            $requete_database->execute();
+            $donnees_database = $requete_database->fetchAll();
+            if (count($donnees_database) === 0) {
+                echo "\033[1;37m\033[40mAucune base de donnée trouver dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
+            } elseif (count($donnees_database) === 1) {
+                echo "\033[1;37m\033[40mVoici la base de donnée qui est dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
+                foreach ($donnees_database as $value) {
+                    echo "\033[40m\033[1;32m" . $value["Database"] . "\033[0m\n";
+                }
+            } elseif (count($donnees_database) > 1) {
+                echo "\033[1;37m\033[40mVoici les \033[1;32m" . count($donnees_database) . " \033[1;37mbases de données qui sont dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
+                foreach ($donnees_database as $value) {
+                    echo "\033[40m\033[1;32m" . $value["Database"] . "\033[0m\n";
+                }
+            }
+            
+        }
+    } catch (PDOException $exception) {
+        if ($exception->getCode() === 2005) {
+            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
+        } elseif ($exception->getCode() === 1045) {
+            if ($password === "") {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            } else {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            }
+        } else {    
+            echo "\033[41m\033[1;37mErreur :\n";
+            echo $exception->getMessage();
+            echo "\nCode d'erreur : " . $exception->getCode();
+            echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
+            echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
+            echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
+        }
+    }
+}
 /**
 * Mysql_Create_table
 *
@@ -314,7 +376,7 @@ function Too_Much_Argv_enough($type, $option = null)
         echo "\033[40m\033[1;37mtapez\033[1;31m ./" . $GLOBALS["filename"] . " \033[1;32mhelp\033[40m\033[1;37m pour avoir de l'aide !!\033[0m\n";
         echo "\033[40m\033[1;37mtapez\033[1;31m ./" . $GLOBALS["filename"] . " \033[1;32m" . $type . "\033[40m\033[1;37m pour avoir l'aide pour utiliser le script avec \033[1;32m" . $type . "\033[0m\n";
     } else {
-        echo "\033[1;33m\033[40mPas assez d'argument !!\033[0m\n";
+        echo "\033[1;33m\033[40mTrop d'argument !!\033[0m\n";
         echo "\033[40m\033[1;37mtapez\033[1;31m ./" . $GLOBALS["filename"] . " \033[1;32m" . $type . " " . $option . "\033[40m\033[1;37m pour avoir l'aide pour utiliser le script avec \033[1;32m" . $type . "\033[1;37m et utiliser l'option \033[1;32m" . $option . "\033[0m\n";
     }
 }
@@ -331,20 +393,21 @@ if (count($argv) === 1) {
     echo "\033[1;32mmysql\033[0m\n";
 } elseif (strtolower($argv[1]) === "mysql") {
     if (count($argv) === 2) {
-        echo "\033[1;37m\033[40mAide pour utiliser le script avec mysql :\n";
-        echo "\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql [option] [argument]\n";
-        echo "\033[1;37mTapez \033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql [option]\033[1;37m pour avoir l'aide de cet option\n";
-        echo "\033[40m\033[1;37mOption :\n";
-        echo "\033[1;32mcreate:database\033[1;37m => crée une base de donnée\n";
-        echo "\033[1;32mcreate:table\033[1;37m    => crée une table dans une base de donnée\033[0m\n";
+        echo "\033[1;37m\033[40mAide pour utiliser le script avec mysql :\033[0m\n";
+        echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql [option] [argument]\033[0m\n";
+        echo "\033[40m\033[1;37mTapez \033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql [option]\033[1;37m pour avoir l'aide de cet option\033[0m\n";
+        echo "\033[40m\033[1;37mOption :\033[0m\n";
+        echo "\033[40m\033[1;32mcreate:database\033[1;37m => crée une base de donnée\033[0m\n";
+        echo "\033[40m\033[1;32mcreate:table\033[1;37m    => crée une table dans une base de donnée\033[0m\n";
+        echo "\033[40m\033[1;32mshow:databases\033[1;37m  => montrent les bases de données du serveur\033[0m\n";
     } elseif ($argv[2] === "create:database") {
         if (count($argv) === 3) {
             echo "\033[1;37m\033[40mAide pour crée une base de donnée avec mysql :\n";
-            echo "\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql create:database [host] [username] [password] [database]\n";
-            echo "\033[1;32m[host]\033[1;37m     => le serveur\n";
-            echo "\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\n";
-            echo "\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\n";
-            echo "\033[1;32m[database]\033[1;37m => le nom de la base de donnée que vous voulez crée\033[0m\n";
+            echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql create:database [host] [username] [password] [database]\n";
+            echo "\033[40m\033[1;32m[host]\033[1;37m     => le serveur\n";
+            echo "\033[40m\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\n";
+            echo "\033[40m\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\n";
+            echo "\033[40m\033[1;32m[database]\033[1;37m => le nom de la base de donnée que vous voulez crée\033[0m\n";
         } elseif (count($argv) < 7) {
             Not_Argv_enough("mysql", "create:database");
         } elseif (count($argv) === 7) {
@@ -354,20 +417,34 @@ if (count($argv) === 1) {
         }
     } elseif ($argv[2] === "create:table") {
         if (count($argv) === 3) {
-            echo "\033[1;37m\033[40mAide pour crée un tableau dans une base de donnée avec mysql :\n";
-            echo "\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql create:tableau [host] [username] [password] [database] [table] [number]\n";
-            echo "\033[1;32m[host]\033[1;37m     => le serveur\n";
-            echo "\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\n";
-            echo "\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\n";
-            echo "\033[1;32m[database]\033[1;37m => le nom de la base de donnée ou vous voulez ajouter le tableau\n";
-            echo "\033[1;32m[table]\033[1;37m    => le nom du tableau que vous voulez crée\n";
-            echo "\033[1;32m[number]\033[1;37m    => le nombre de colonne à créer\033[0m\n";
+            echo "\033[1;37m\033[40mAide pour crée un tableau dans une base de donnée avec mysql :\033[0m\n";
+            echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql create:tableau [host] [username] [password] [database] [table] [number]\033[0m\n";
+            echo "\033[40m\033[1;32m[host]\033[1;37m     => le serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\033[0m\n";
+            echo "\033[40m\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\033[0m\n";
+            echo "\033[40m\033[1;32m[database]\033[1;37m => le nom de la base de donnée ou vous voulez ajouter le tableau\033[0m\n";
+            echo "\033[40m\033[1;32m[table]\033[1;37m    => le nom du tableau que vous voulez crée\033[0m\n";
+            echo "\033[40m\033[1;32m[number]\033[1;37m    => le nombre de colonne à créer\033[0m\n";
         } elseif (count($argv) < 9) {
             Not_Argv_enough("mysql", "create:table");
         } elseif (count($argv) === 9) {
             Mysql_Create_table($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
         } elseif (count($argv > 9)) {
             Too_Much_Argv_enough("mysql", "create:table");
+        }
+    } elseif ($argv[2] === "show:databases") {
+        if (count($argv) === 3) {
+            echo "\033[1;37m\033[40mAide pour montrer les bases de données avec mysql :\033[0m\n";
+            echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql show:databases [host] [username] [password]\033[0m\n";
+            echo "\033[40m\033[1;32m[host]\033[1;37m     => le serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\033[0m\n";
+            echo "\033[40m\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\033[0m\n";
+        } elseif (count($argv) < 6) {
+            Not_Argv_enough("mysql", "show:databases");
+        } elseif (count($argv) === 6) {
+            Mysql_Show_database($argv[3], $argv[4], $argv[5]);
+        } elseif (count($argv) > 6) {
+            Too_Much_Argv_enough("mysql", "show:databases");
         }
     }
 } else {
