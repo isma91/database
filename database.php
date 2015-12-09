@@ -67,7 +67,7 @@ function Compare_With_levenshtein($array_argument_to_check, $array_to_compare)
         foreach ($good_writted_arguments as $good_arguments) {
             echo "\033[40m\033[1;31m" . $good_arguments . "\033[1;33m\033[0m\n";
         }
-        echo "\033[40m\033[1;32mMauvais aurgument écrit :\033[0m\n";
+        echo "\033[40m\033[1;32mMauvais aurgument corriger, voulez-vous écrire :\033[0m\n";
         foreach ($bad_writted_arguments as $bad_arguments) {
             echo "\033[40m\033[1;31m" . $bad_arguments . "\033[1;33m\033[0m\n";
         }
