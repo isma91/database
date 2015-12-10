@@ -84,6 +84,71 @@ if (count($argv) > 1) {
 }
 Compare_With_levenshtein($array_argument, $arguments);
 /**
+* Mysql_Show_tables
+*
+* Montre toute les tableaux d'une base de donnée dans un serveur de type Mysql
+*
+* @param  String $host     le server, localhost si c'est local ou générallement une adresse ip
+* @param  String $username le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String $password le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @param  String $database la base de donnée selectionner
+* @throws PDOException;    des exceptions personnaliser
+* @return echo;            vous montres les bases de données
+*/
+function Mysql_Show_tables($host, $username, $password, $database)
+{
+    if ($password === "[]") {
+        $password = "";
+    }
+    try {
+        $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
+        //$bdd = new PDO("mysql:host=localhost;dbname=mysql", $username, $password);
+        echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
+        $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege->execute();
+        $donnees_privilege = $requete_privilege->fetch();
+        if (strtoupper($donnees_privilege["select_priv"]) === "N") {
+            echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits de séléction dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
+        } else {
+            $requete_table = $bdd->query("SHOW TABLES");
+            $donnees_table = $requete_table->fetchAll(PDO::FETCH_NUM);
+            /*foreach($donnees_table as $value) {
+                var_dump($value[0]);
+            }*/
+            if (count($donnees_table) === 0) {
+                echo "\033[1;37m\033[40mAucun tableau trouver dans la base de donnée \033[1;32m" . $database . "\033[1;37m dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
+            } elseif (count($donnees_table) === 1) {
+                echo "\033[1;37m\033[40mVoici l'unique tableau dans la base de donnée \033[1;32m" . $database . "\033[1;37m qui est dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
+                foreach ($donnees_table as $value) {
+                    echo "\033[40m\033[1;32m" . $value[0] . "\033[0m\n";
+                }
+            } elseif (count($donnees_table) > 1) {
+                echo "\033[1;37m\033[40mVoici les \033[1;32m" . count($donnees_table) . " \033[1;37mtableaux qui sont dans la base de données \033[1;32m" . $database . "\033[1;37m dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
+                foreach ($donnees_table as $value) {
+                    echo "\033[40m\033[1;32m" . $value[0] . "\033[0m\n";
+                }
+            }
+        }
+    } catch (PDOException $exception) {
+        if ($exception->getCode() === 2005) {
+            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
+        } elseif ($exception->getCode() === 1045) {
+            if ($password === "") {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            } else {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            }
+        } else {    
+            echo "\033[41m\033[1;37mErreur :\n";
+            echo $exception->getMessage();
+            echo "\nCode d'erreur : " . $exception->getCode();
+            echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
+            echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
+            echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
+        }
+    }
+}
+/**
 * Mysql_Show_database
 *
 * Montre toute les bases de données dans un serveur de type Mysql
@@ -400,6 +465,7 @@ if (count($argv) === 1) {
         echo "\033[40m\033[1;32mcreate:database\033[1;37m => crée une base de donnée\033[0m\n";
         echo "\033[40m\033[1;32mcreate:table\033[1;37m    => crée une table dans une base de donnée\033[0m\n";
         echo "\033[40m\033[1;32mshow:databases\033[1;37m  => montrent les bases de données du serveur\033[0m\n";
+        echo "\033[40m\033[1;32mshow:tables\033[1;37m     => montrent les tableaux d'une base de donnée du serveur\033[0m\n";
     } elseif ($argv[2] === "create:database") {
         if (count($argv) === 3) {
             echo "\033[1;37m\033[40mAide pour crée une base de donnée avec mysql :\n";
@@ -445,6 +511,21 @@ if (count($argv) === 1) {
             Mysql_Show_database($argv[3], $argv[4], $argv[5]);
         } elseif (count($argv) > 6) {
             Too_Much_Argv_enough("mysql", "show:databases");
+        }
+    } elseif ($argv[2] === "show:tables") {
+        if (count($argv) === 3) {
+            echo "\033[1;37m\033[40mAide pour montrer les tableaux d'une base de donnée avec mysql :\033[0m\n";
+            echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql show:tables [host] [username] [password] [database]\033[0m\n";
+            echo "\033[40m\033[1;32m[host]\033[1;37m     => le serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\033[0m\n";
+            echo "\033[40m\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\033[0m\n";
+            echo "\033[40m\033[1;32m[database]\033[1;37m => la base de donnée selectionner du serveur\033[0m\n";
+        } elseif (count($argv) < 7) {
+            Not_Argv_enough("mysql", "show:tables");
+        } elseif (count($argv) === 7) {
+            Mysql_Show_tables($argv[3], $argv[4], $argv[5], $argv[6]);
+        } elseif (count($argv) > 7) {
+            Too_Much_Argv_enough("mysql", "show:tables");
         }
     }
 } else {
