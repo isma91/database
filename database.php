@@ -73,7 +73,7 @@ function Compare_With_levenshtein($array_argument_to_check, $array_to_compare)
         }
     }
 }
-$arguments = array("help", "mysql", "liste", "create:database", "create:table", "show:databases");
+$arguments = array("help", "mysql", "liste", "create:database", "create:table", "show:databases", "rename:table");
 $array_argument = array();
 if (count($argv) > 1) {
     for ($j = 0; $j < count($argv); $j = $j + 1) {
@@ -83,6 +83,76 @@ if (count($argv) > 1) {
     }
 }
 Compare_With_levenshtein($array_argument, $arguments);
+/**
+* Mysql_Rename_table
+*
+* Renomme un tableau d'une base de donnée dans un serveur de type Mysql
+*
+* @param  String $host           le server, localhost si c'est local ou générallement une adresse ip
+* @param  String $username       le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String $password       le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @param  String $database       la base de donnée selectionner
+* @param  String $old_table_name le tableau à renommer
+* @param  String $new_table_name le nouveau nom du tableau
+* @throws PDOException;          des exceptions personnaliser
+* @return echo;                  vous montres les bases de données
+*/
+function Mysql_Rename_table($host, $username, $password, $database, $old_table_name, $new_table_name)
+{
+    $table_finded = false;
+    if ($password === "[]") {
+        $password = "";
+    }
+    try {
+        $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
+        echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
+        $requete_privilege = $bdd->prepare("SELECT insert_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege->execute();
+        $donnees_privilege = $requete_privilege->fetch();
+        if (strtoupper($donnees_privilege["insert_priv"]) === "N") {
+            echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits d'insertion dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
+        } else {
+            $requete_find_table = $bdd->query("SHOW TABLES");
+            $donnees_find_table = $requete_find_table->fetchAll(PDO::FETCH_NUM);
+            foreach ($donnees_find_table as $value) {
+                if ($value[0] === $old_table_name) {
+                    $table_finded = true;
+                    break;
+                }
+            }
+            if ($table_finded === false) {
+                echo "\033[1;33m\033[40mErreur !! Le tableau \033[1;31m" . $old_table_name . "\033[1;33m n'existe pas dans la base de donnée \033[1;31m" . $database . "\033[1;33m !!\033[0m\n";
+            } else {
+                echo "\033[40m\033[1;32mTableau trouver !!\033[0m\n";
+                if ($old_table_name === $new_table_name) {
+                    echo "\033[1;33m\033[40mErreur !! Le tableau \033[1;31m" . $old_table_name . "\033[1;33m aura le meme nom qu'avant !!\033[0m\n";
+                } else {
+                    $bdd->exec("RENAME TABLE `$old_table_name` TO `$new_table_name`;");
+                    echo "\033[40m\033[1;37mLe tableau \033[1;32m" . $old_table_name . " \033[1;37ma été renommer en \033[1;32m" . $new_table_name . "\033[1;37m dans \033[1;32m" . $host ." !!\033[0m\n";
+                }
+            }
+        }
+    } catch (PDOException $exception) {
+        if ($exception->getCode() === 2005) {
+            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
+        } elseif ($exception->getCode() === 1049) {
+            echo "\033[1;33m\033[40mErreur !! La base de donnée \033[1;31m" . $database . "\033[1;33m n'existe pas dans le serveur \033[1;31m" . $host . "\033[1;33m !!\033[0m\n";
+        } elseif ($exception->getCode() === 1045) {
+            if ($password === "") {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            } else {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            }
+        } else {    
+            echo "\033[41m\033[1;37mErreur :\n";
+            echo $exception->getMessage();
+            echo "\nCode d'erreur : " . $exception->getCode();
+            echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
+            echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
+            echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
+        }
+    }
+}
 /**
 * Mysql_Show_tables
 *
@@ -102,7 +172,6 @@ function Mysql_Show_tables($host, $username, $password, $database)
     }
     try {
         $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
-        //$bdd = new PDO("mysql:host=localhost;dbname=mysql", $username, $password);
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
         $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
@@ -112,9 +181,6 @@ function Mysql_Show_tables($host, $username, $password, $database)
         } else {
             $requete_table = $bdd->query("SHOW TABLES");
             $donnees_table = $requete_table->fetchAll(PDO::FETCH_NUM);
-            /*foreach($donnees_table as $value) {
-                var_dump($value[0]);
-            }*/
             if (count($donnees_table) === 0) {
                 echo "\033[1;37m\033[40mAucun tableau trouver dans la base de donnée \033[1;32m" . $database . "\033[1;37m dans \033[1;32m" . $host ."\033[1;37m !!\033[0m\n";
             } elseif (count($donnees_table) === 1) {
@@ -132,6 +198,8 @@ function Mysql_Show_tables($host, $username, $password, $database)
     } catch (PDOException $exception) {
         if ($exception->getCode() === 2005) {
             echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
+        } elseif ($exception->getCode() === 1049) {
+            echo "\033[1;33m\033[40mErreur !! La base de donnée \033[1;31m" . $database . "\033[1;33m n'existe pas dans le serveur \033[1;31m" . $host . "\033[1;33m !!\033[0m\n";
         } elseif ($exception->getCode() === 1045) {
             if ($password === "") {
                 echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
@@ -221,7 +289,7 @@ function Mysql_Show_database($host, $username, $password)
 * @param  String  $username le nom d'utilisateur pour se connecter au serveur MySQL
 * @param  String  $password le mot de passe de l'utilisateur pour se connecter au serveur MySQL
 * @param  String  $database le nom de la bae de donnée ou on va crée le tableau
-* @param  String  $table    le nom du talbeau que l'on va crée
+* @param  String  $table    le nom du tableau que l'on va crée
 * @param  Integer $number   le nombre de champs (colonne) que l'on va crée dans le tableau
 * @throws PDOException;     des exceptions personnaliser
 * @return echo;             vous ecrit si le tableau est crée ou non
@@ -465,7 +533,7 @@ if (count($argv) === 1) {
         echo "\033[40m\033[1;32mcreate:database\033[1;37m => crée une base de donnée\033[0m\n";
         echo "\033[40m\033[1;32mcreate:table\033[1;37m    => crée une table dans une base de donnée\033[0m\n";
         echo "\033[40m\033[1;32mshow:databases\033[1;37m  => montrent les bases de données du serveur\033[0m\n";
-        echo "\033[40m\033[1;32mshow:tables\033[1;37m     => montrent les tableaux d'une base de donnée du serveur\033[0m\n";
+        echo "\033[40m\033[1;32mrename:table\033[1;37m    => renomme un tableau d'une base de donnée du serveur\033[0m\n";
     } elseif ($argv[2] === "create:database") {
         if (count($argv) === 3) {
             echo "\033[1;37m\033[40mAide pour crée une base de donnée avec mysql :\n";
@@ -526,6 +594,23 @@ if (count($argv) === 1) {
             Mysql_Show_tables($argv[3], $argv[4], $argv[5], $argv[6]);
         } elseif (count($argv) > 7) {
             Too_Much_Argv_enough("mysql", "show:tables");
+        }
+    } elseif ("rename:table") {
+        if (count($argv) === 3) {
+            echo "\033[1;37m\033[40mAide pour renommer le tableau d'une base de donnée avec mysql :\033[0m\n";
+            echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql rename:table [host] [username] [password] [database] [old_table_name] [new_table_name]\033[0m\n";
+            echo "\033[40m\033[1;32m[host]\033[1;37m           => le serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[username]\033[1;37m       => le nom d'utilisateur pour ce connecter à votre mysql\033[0m\n";
+            echo "\033[40m\033[1;32m[password]\033[1;37m       => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\033[0m\n";
+            echo "\033[40m\033[1;32m[database]\033[1;37m       => la base de donnée selectionner du serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[old_table_name]\033[1;37m => le tableau à renommer \033[0m\n";
+            echo "\033[40m\033[1;32m[new_table_name]\033[1;37m => le nouveau nom du tableau \033[0m\n";
+        } elseif (count($argv) < 9) {
+            Not_Argv_enough("mysql", "rename:table");
+        } elseif (count($argv) === 9) {
+            Mysql_Rename_table($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
+        } elseif (count($argv) > 9) {
+            Too_Much_Argv_enough("mysql", "rename:table");
         }
     }
 } else {
