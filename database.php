@@ -20,6 +20,13 @@
 *ini_set('xdebug.var_display_max_data', -1);
 */
 $GLOBALS["filename"] = basename(__FILE__);
+if (version_compare(phpversion(), "5.1.0", "<")) {
+    exit("\033[1;33m\033[40mIl faut que votre version de PHP soit au moins à \033[40m\033[1;31m 5.1.0 !!\033[0m\n");
+} elseif (version_compare(phpversion(), "5.4.0", "<")) {
+    echo "\033[1;33m\033[40mVotre version de PHP est entre \033[40m\033[1;31m 5.1.0 \033[1;33met \033[40m\033[1;31m 5.4.0 \033[1;33m nous vous conseillons de mettre à jour votre PHP pour pleinement profiter du script!!\033[0m\n";
+} else {
+    echo "\033[40m\033[1;32mVersion de PHP suffisant !!\033[0m\n";
+}
 /**
 * Compare_With_levenshtein
 *
