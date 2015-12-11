@@ -595,7 +595,7 @@ if (count($argv) === 1) {
         } elseif (count($argv) > 7) {
             Too_Much_Argv_enough("mysql", "show:tables");
         }
-    } elseif ("rename:table") {
+    } elseif ($argv[2] === "rename:table") {
         if (count($argv) === 3) {
             echo "\033[1;37m\033[40mAide pour renommer le tableau d'une base de donnée avec mysql :\033[0m\n";
             echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql rename:table [host] [username] [password] [database] [old_table_name] [new_table_name]\033[0m\n";
