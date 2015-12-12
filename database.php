@@ -91,6 +91,74 @@ if (count($argv) > 1) {
 }
 Compare_With_levenshtein($array_argument, $arguments);
 /**
+* Mysql_Show_columns
+*
+* Montre les type de champs d'un tableau d'une base de donnée dans un serveur de type Mysql
+*
+* @param  String $host           le server, localhost si c'est local ou générallement une adresse ip
+* @param  String $username       le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String $password       le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @param  String $database       la base de donnée selectionner
+* @param  String $table le tableau selectionner
+* @throws PDOException;          des exceptions personnaliser
+* @return echo;                  vous montres les bases de données
+*/
+function Mysql_Show_columns($host, $username, $password, $database, $table)
+{
+    $table_finded = false;
+    if ($password === "[]") {
+        $password = "";
+    }
+    try {
+        $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
+        echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
+        $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege->execute();
+        $donnees_privilege = $requete_privilege->fetch();
+        if (strtoupper($donnees_privilege["select_priv"]) === "N") {
+            echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits de selection dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
+        } else {
+            $requete_find_table = $bdd->query("SHOW TABLES");
+            $donnees_find_table = $requete_find_table->fetchAll(PDO::FETCH_NUM);
+            foreach ($donnees_find_table as $value) {
+                if ($value[0] === $table) {
+                    $table_finded = true;
+                    break;
+                }
+            }
+            if ($table_finded === false) {
+                echo "\033[1;33m\033[40mErreur !! Le tableau \033[1;31m" . $table . "\033[1;33m n'existe pas dans la base de donnée \033[1;31m" . $database . "\033[1;33m !!\033[0m\n";
+            } else {
+                $requete_show_columns = $bdd->query("SHOW COLUMNS FROM `$table`");
+                $donnees_show_columns = $requete_show_columns->fetchAll();
+                /*foreach ($donnees_show_columns as $key => $value) {
+                    var_dump($key);
+                    var_dump($value);
+                }*/
+            }
+        }
+    } catch (PDOException $exception) {
+        if ($exception->getCode() === 2005) {
+            echo "\033[1;33m\033[40mErreur !! Le serveur MySQL \033[1;31m" . $host . "\033[1;33m n'est pas reconnu !!\033[0m\n";
+        } elseif ($exception->getCode() === 1049) {
+            echo "\033[1;33m\033[40mErreur !! La base de donnée \033[1;31m" . $database . "\033[1;33m n'existe pas dans le serveur \033[1;31m" . $host . "\033[1;33m !!\033[0m\n";
+        } elseif ($exception->getCode() === 1045) {
+            if ($password === "") {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être oublier d'écrire le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            } else {
+                echo "\033[1;33m\033[40mErreur !! Le serveur MySQL a refusé l'acces à \033[1;31m" . $username . "\033[1;33m, vous avez peut-être mal écris le\033[1;31m mot de passe\033[1;33m ??\033[0m\n";
+            }
+        } else {    
+            echo "\033[41m\033[1;37mErreur :\n";
+            echo $exception->getMessage();
+            echo "\nCode d'erreur : " . $exception->getCode();
+            echo "\nLa fonction ayant généré l'erreur : " . $exception->getTrace()[1]['function'];
+            echo "\nLa ligne d'erreur dans la fonction : " . $exception->getLine();
+            echo "\nla ligne ou l'erreur s'est produit : " . $exception->getTrace()[1]['line'] . "\033[0m\n";
+        }
+    }
+}
+/**
 * Mysql_Rename_table
 *
 * Renomme un tableau d'une base de donnée dans un serveur de type Mysql
@@ -541,6 +609,7 @@ if (count($argv) === 1) {
         echo "\033[40m\033[1;32mcreate:table\033[1;37m    => crée une table dans une base de donnée\033[0m\n";
         echo "\033[40m\033[1;32mshow:databases\033[1;37m  => montrent les bases de données du serveur\033[0m\n";
         echo "\033[40m\033[1;32mrename:table\033[1;37m    => renomme un tableau d'une base de donnée du serveur\033[0m\n";
+        echo "\033[40m\033[1;32mshow:columns\033[1;37m    => montrent les type de champs d'un tableau d'une base de donnée du serveur\033[0m\n";
     } elseif ($argv[2] === "create:database") {
         if (count($argv) === 3) {
             echo "\033[1;37m\033[40mAide pour crée une base de donnée avec mysql :\n";
@@ -618,6 +687,22 @@ if (count($argv) === 1) {
             Mysql_Rename_table($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
         } elseif (count($argv) > 9) {
             Too_Much_Argv_enough("mysql", "rename:table");
+        }
+    } elseif ($argv[2] === "show:columns") {
+        if (count($argv) === 3) {
+            echo "\033[1;37m\033[40mAide pour montrer les types de champs d'un tableau avec mysql :\033[0m\n";
+            echo "\033[40m\033[1;31m./" . $GLOBALS["filename"] . " \033[1;32mmysql show:columns [host] [username] [password] [database] [table]\033[0m\n";
+            echo "\033[40m\033[1;32m[host]\033[1;37m     => le serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[username]\033[1;37m => le nom d'utilisateur pour ce connecter à votre mysql\033[0m\n";
+            echo "\033[40m\033[1;32m[password]\033[1;37m => le mot de passe pour ce connecter à votre mysql \033[1;31mecrire [] si vous avez un mot de passe vide !!\033[0m\n";
+            echo "\033[40m\033[1;32m[database]\033[1;37m => la base de donnée selectionner du serveur\033[0m\n";
+            echo "\033[40m\033[1;32m[table]\033[1;37m    => le tableau selectionner \033[0m\n";
+        } elseif (count($argv) < 8) {
+            Not_Argv_enough("mysql", "show:columns");
+        } elseif (count($argv) === 8) {
+            Mysql_Show_columns($argv[3], $argv[4], $argv[5], $argv[6], $argv[7]);
+        } elseif (count($argv) > 8) {
+            Too_Much_Argv_enough("mysql", "show:columns");
         }
     }
 } else {
