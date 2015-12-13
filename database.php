@@ -131,10 +131,37 @@ function Mysql_Show_columns($host, $username, $password, $database, $table)
             } else {
                 $requete_show_columns = $bdd->query("SHOW COLUMNS FROM `$table`");
                 $donnees_show_columns = $requete_show_columns->fetchAll();
-                /*foreach ($donnees_show_columns as $key => $value) {
-                    var_dump($key);
-                    var_dump($value);
-                }*/
+                for ($n = 0; $n < count($donnees_show_columns); $n = $n + 1) {
+                    $donnees_show_columns_field[] = $donnees_show_columns[$n]["Field"];
+                    $donnees_show_columns_type[] = $donnees_show_columns[$n]["Type"];
+                    $donnees_show_columns_null[] = $donnees_show_columns[$n]["Null"];
+                    if (empty($donnees_show_columns[$n]["Key"])) {
+                        $donnees_show_columns_key[] = "Aucun";
+                    } else {
+                        $donnees_show_columns_key[] = $donnees_show_columns[$n]["Key"];
+                    }
+                    if (empty($donnees_show_columns[$n]["Default"])) {
+                        $donnees_show_columns_default[] = "Aucun";
+                    } else {
+                        $donnees_show_columns_default[] = $donnees_show_columns[$n]["Default"];
+                    }
+                    if (empty($donnees_show_columns[$n]["Extra"])) {
+                        $donnees_show_columns_extra[] = "Aucun";
+                    } else {
+                        $donnees_show_columns_extra[] = $donnees_show_columns[$n]["Extra"];
+                    }
+                }
+                if (count($donnees_show_columns_field) === 1) {
+                    echo "\033[1;37m\033[40mVoici l'unique champs dans le tableau \033[1;32m" . $table . "\033[1;37m !!\033[0m\n";
+                    echo "\033[40m\033[1;37m|\033[1;34mNom\033[1;37m|\033[1;37m|\033[1;31mType\033[1;37m|\033[1;37m|\033[1;35mNull\033[1;37m|\033[1;37m|\033[1;33mClé\033[1;37m|\033[1;37m|\033[1;36mDefaut\033[1;37m|\033[1;37m|\033[1;37mExtra\033[1;37m|\033[0m\n\n";
+                    echo "\033[40m\033[1;37m|\033[1;34m" . array_shift($donnees_show_columns_field) . "\033[1;37m|\033[1;37m|\033[1;31m" . array_shift($donnees_show_columns_type) . "\033[1;37m|\033[1;37m|\033[1;35m" . array_shift($donnees_show_columns_null) . "\033[1;37m|\033[1;37m|\033[1;33m" . array_shift($donnees_show_columns_key) . "\033[1;37m|\033[1;37m|\033[1;36m" . array_shift($donnees_show_columns_default) . "\033[1;37m|\033[1;37m|\033[1;37m" . array_shift($donnees_show_columns_extra) . "\033[1;37m|\033[0m\n";
+                } else {
+                    echo "\033[1;37m\033[40mVoici les \033[1;32m" . count($donnees_show_columns_field) ."\033[1;37m champs dans le tableau \033[1;32m" . $table . "\033[1;37m !!\033[0m\n";
+                    echo "\033[40m\033[1;37m|\033[1;34mNom\033[1;37m|\033[1;37m|\033[1;31mType\033[1;37m|\033[1;37m|\033[1;35mNull\033[1;37m|\033[1;37m|\033[1;33mClé\033[1;37m|\033[1;37m|\033[1;36mDefaut\033[1;37m|\033[1;37m|\033[1;37mExtra\033[1;37m|\033[0m\n\n";
+                    for ($o = 0; $o < count($donnees_show_columns_field); $o = $o + 1) {
+                        echo "\033[40m\033[1;37m|\033[1;34m" . $donnees_show_columns_field[$o] . "\033[1;37m|\033[1;37m|\033[1;31m" . $donnees_show_columns_type[$o] . "\033[1;37m|\033[1;37m|\033[1;35m" . $donnees_show_columns_null[$o] . "\033[1;37m|\033[1;37m|\033[1;33m" . $donnees_show_columns_key[$o] . "\033[1;37m|\033[1;37m|\033[1;36m" . $donnees_show_columns_default[$o] . "\033[1;37m|\033[1;37m|\033[1;37m" . $donnees_show_columns_extra[$o] . "\033[1;37m|\033[0m\n";
+                    }
+                }
             }
         }
     } catch (PDOException $exception) {
