@@ -95,13 +95,13 @@ Compare_With_levenshtein($array_argument, $arguments);
 *
 * Montre les type de champs d'un tableau d'une base de donnée dans un serveur de type Mysql
 *
-* @param  String $host           le server, localhost si c'est local ou générallement une adresse ip
-* @param  String $username       le nom d'utilisateur pour se connecter au serveur MySQL
-* @param  String $password       le mot de passe de l'utilisateur pour se connecter au serveur MySQL
-* @param  String $database       la base de donnée selectionner
-* @param  String $table le tableau selectionner
-* @throws PDOException;          des exceptions personnaliser
-* @return echo;                  vous montres les bases de données
+* @param  String $host     le server, localhost si c'est local ou générallement une adresse ip
+* @param  String $username le nom d'utilisateur pour se connecter au serveur MySQL
+* @param  String $password le mot de passe de l'utilisateur pour se connecter au serveur MySQL
+* @param  String $database la base de donnée selectionner
+* @param  String $table    le tableau selectionner
+* @throws PDOException;    des exceptions personnaliser
+* @return echo;            vous montres les bases de données
 */
 function Mysql_Show_columns($host, $username, $password, $database, $table)
 {
@@ -131,33 +131,134 @@ function Mysql_Show_columns($host, $username, $password, $database, $table)
             } else {
                 $requete_show_columns = $bdd->query("SHOW COLUMNS FROM `$table`");
                 $donnees_show_columns = $requete_show_columns->fetchAll();
+                $strlen_donnees_show_columns_field = 0;
+                $strlen_donnees_show_columns_type = 0;
+                $strlen_donnees_show_columns_null = 0;
+                $strlen_donnees_show_columns_key = 0;
+                $strlen_donnees_show_columns_default = 0;
+                $strlen_donnees_show_columns_extra = 0;
                 for ($n = 0; $n < count($donnees_show_columns); $n = $n + 1) {
+                    if (strlen($donnees_show_columns[$n]["Field"]) > $strlen_donnees_show_columns_field) {
+                        $strlen_donnees_show_columns_field = strlen($donnees_show_columns[$n]["Field"]);
+                    }
                     $donnees_show_columns_field[] = $donnees_show_columns[$n]["Field"];
+                    if (strlen($donnees_show_columns[$n]["Type"]) > $strlen_donnees_show_columns_type) {
+                        $strlen_donnees_show_columns_type = strlen($donnees_show_columns[$n]["Type"]);
+                    }
                     $donnees_show_columns_type[] = $donnees_show_columns[$n]["Type"];
+                    if (strlen($donnees_show_columns[$n]["Null"]) > $strlen_donnees_show_columns_null) {
+                        $strlen_donnees_show_columns_null = strlen($donnees_show_columns[$n]["Null"]);
+                    }
                     $donnees_show_columns_null[] = $donnees_show_columns[$n]["Null"];
                     if (empty($donnees_show_columns[$n]["Key"])) {
-                        $donnees_show_columns_key[] = "Aucun";
-                    } else {
-                        $donnees_show_columns_key[] = $donnees_show_columns[$n]["Key"];
+                        $donnees_show_columns[$n]["Key"] = "Aucun";
                     }
+                    if (strlen($donnees_show_columns[$n]["Key"]) > $strlen_donnees_show_columns_key) {
+                        $strlen_donnees_show_columns_key = strlen($donnees_show_columns[$n]["Key"]);
+                    }
+                    $donnees_show_columns_key[] = $donnees_show_columns[$n]["Key"];
                     if (empty($donnees_show_columns[$n]["Default"])) {
-                        $donnees_show_columns_default[] = "Aucun";
-                    } else {
-                        $donnees_show_columns_default[] = $donnees_show_columns[$n]["Default"];
+                        $donnees_show_columns[$n]["Default"] = "Aucun";
                     }
+                    if (strlen($donnees_show_columns[$n]["Default"]) > $strlen_donnees_show_columns_default) {
+                        $strlen_donnees_show_columns_default = strlen($donnees_show_columns[$n]["Default"]);
+                    }
+                    $donnees_show_columns_default[] = $donnees_show_columns[$n]["Default"];
                     if (empty($donnees_show_columns[$n]["Extra"])) {
-                        $donnees_show_columns_extra[] = "Aucun";
-                    } else {
-                        $donnees_show_columns_extra[] = $donnees_show_columns[$n]["Extra"];
+                        $donnees_show_columns[$n]["Extra"] = "Aucun";
+                    }
+                    if (strlen($donnees_show_columns[$n]["Extra"]) > $strlen_donnees_show_columns_extra) {
+                        $strlen_donnees_show_columns_extra = strlen($donnees_show_columns[$n]["Extra"]);
+                    }
+                    $donnees_show_columns_extra[] = $donnees_show_columns[$n]["Extra"];
+                }
+                for ($i = 0; $i < count($donnees_show_columns_field); $i = $i + 1) {
+                    if ($strlen_donnees_show_columns_field > strlen($donnees_show_columns_field[$i])) {
+                        $donnees_show_columns_field[$i] = $donnees_show_columns_field[$i] . str_repeat(" ", ($strlen_donnees_show_columns_field - strlen($donnees_show_columns_field[$i])));
+                    } elseif ($strlen_donnees_show_columns_field > strlen($donnees_show_columns_field[$i])) {
+                        $donnees_show_columns_field[$i] = $donnees_show_columns_field[$i] . str_repeat(" ", (strlen($donnees_show_columns_field[$i]) - $strlen_donnees_show_columns_field));
+                    }
+                    if ($strlen_donnees_show_columns_type > strlen($donnees_show_columns_type[$i])) {
+                        $donnees_show_columns_type[$i] = $donnees_show_columns_type[$i] . str_repeat(" ", ($strlen_donnees_show_columns_type - strlen($donnees_show_columns_type[$i])));
+                    } elseif ($strlen_donnees_show_columns_type > strlen($donnees_show_columns_type[$i])) {
+                        $donnees_show_columns_type[$i] = $donnees_show_columns_type[$i] . str_repeat(" ", (strlen($donnees_show_columns_type[$i]) - $strlen_donnees_show_columns_type));
+                    }
+                    if ($strlen_donnees_show_columns_null > strlen($donnees_show_columns_null[$i])) {
+                        $donnees_show_columns_null[$i] = $donnees_show_columns_null[$i] . str_repeat(" ", ($strlen_donnees_show_columns_null - strlen($donnees_show_columns_null[$i])));
+                    } elseif ($strlen_donnees_show_columns_null < strlen($donnees_show_columns_null[$i])) {
+                        $donnees_show_columns_null[$i] = $donnees_show_columns_null[$i] . str_repeat(" ", (strlen($donnees_show_columns_null[$i]) - $strlen_donnees_show_columns_null));
+                    }
+                    if ($strlen_donnees_show_columns_key > strlen($donnees_show_columns_key[$i])) {
+                        $donnees_show_columns_key[$i] = $donnees_show_columns_key[$i] . str_repeat(" ", ($strlen_donnees_show_columns_key - strlen($donnees_show_columns_key[$i])));
+                    } elseif ($strlen_donnees_show_columns_key < strlen($donnees_show_columns_key[$i])) {
+                        $donnees_show_columns_key[$i] = $donnees_show_columns_key[$i] . str_repeat(" ", (strlen($donnees_show_columns_key[$i]) - $strlen_donnees_show_columns_key));
+                    }
+                    if ($strlen_donnees_show_columns_default > strlen($donnees_show_columns_default[$i])) {
+                        $donnees_show_columns_default[$i] = $donnees_show_columns_default[$i] . str_repeat(" ", ($strlen_donnees_show_columns_default - strlen($donnees_show_columns_default[$i])));
+                    } elseif ($strlen_donnees_show_columns_default < strlen($donnees_show_columns_default[$i])) {
+                        $donnees_show_columns_default[$i] = $donnees_show_columns_default[$i] . str_repeat(" ", (strlen($donnees_show_columns_default[$i]) - $strlen_donnees_show_columns_default));
+                    }
+                    if ($strlen_donnees_show_columns_extra > strlen($donnees_show_columns_extra[$i])) {
+                        $donnees_show_columns_extra[$i] = $donnees_show_columns_extra[$i] . str_repeat(" ", ($strlen_donnees_show_columns_extra - strlen($donnees_show_columns_extra[$i])));
+                    } elseif ($strlen_donnees_show_columns_extra < strlen($donnees_show_columns_extra[$i])) {
+                        $donnees_show_columns_extra[$i] = $donnees_show_columns_extra[$i] . str_repeat(" ", (strlen($donnees_show_columns_extra[$i]) - $strlen_donnees_show_columns_extra));
+                    }
+                }
+                $nom = "Nom";
+                $type = "Type";
+                $null = "Null";
+                $key = "Cle";
+                $default = "Defaut";
+                $extra = "Extra";
+                if ($strlen_donnees_show_columns_field > strlen($nom)) {
+                    $nom = $nom . str_repeat(" ", ($strlen_donnees_show_columns_field - strlen($nom)));
+                } elseif ($strlen_donnees_show_columns_field < strlen($nom)) {
+                    for ($p = 0; $p < count($donnees_show_columns_field); $p = $p + 1) { 
+                        $donnees_show_columns_field[$p] = $donnees_show_columns_field[$p] . str_repeat(" ", (strlen($nom) - $strlen_donnees_show_columns_field));
+                    }
+                }
+                if ($strlen_donnees_show_columns_type > strlen($type)) {
+                    $type = $type . str_repeat(" ", ($strlen_donnees_show_columns_type - strlen($type)));
+                } elseif ($strlen_donnees_show_columns_type < strlen($type)) {
+                    for ($q = 0; $q < count($donnees_show_columns_type); $q = $q + 1) {
+                        $donnees_show_columns_type[$q] = $donnees_show_columns_type[$q] . str_repeat(" ", (strlen($type) - $strlen_donnees_show_columns_type));
+                    }
+                }
+                if ($strlen_donnees_show_columns_null > strlen($null)) {
+                    $null = $null . str_repeat(" ", ($strlen_donnees_show_columns_null - strlen($null)));
+                } elseif ($strlen_donnees_show_columns_null < strlen($null)) {
+                    for ($r = 0; $r < count($donnees_show_columns_null); $r = $r + 1) {
+                        $donnees_show_columns_null[$r] = $donnees_show_columns_null[$r] . str_repeat(" ", (strlen($null) - $strlen_donnees_show_columns_null));
+                    }
+                }
+                if ($strlen_donnees_show_columns_key > strlen($key)) {
+                    $key = $key . str_repeat(" ", ($strlen_donnees_show_columns_key - strlen($key)));
+                } elseif ($strlen_donnees_show_columns_key < strlen($key)) {
+                    for ($s = 0; $s < count($donnees_show_columns_key); $s = $s + 1) {
+                        $donnees_show_columns_key[$s] = $donnees_show_columns_key[$s] . str_repeat(" ", (strlen($key) - $strlen_donnees_show_columns_key));
+                    }
+                }
+                if ($strlen_donnees_show_columns_default > strlen($default)) {
+                    $default = $default . str_repeat(" ", ($strlen_donnees_show_columns_default - strlen($default)));
+                } elseif ($strlen_donnees_show_columns_default < strlen($default)) {
+                    for ($t = 0; $t < count($donnees_show_columns_default); $t = $t + 1) {
+                        $donnees_show_columns_default[$t] = $donnees_show_columns_default[$t] . str_repeat(" ", (strlen($default) - $strlen_donnees_show_columns_default));
+                    }
+                }
+                if ($strlen_donnees_show_columns_extra > strlen($extra)) {
+                    $extra = $extra . str_repeat(" ", ($strlen_donnees_show_columns_extra - strlen($extra)));
+                } elseif ($strlen_donnees_show_columns_extra < strlen($extra)) {
+                    for ($u = 0; $u < count($donnees_show_columns_extra); $u = $u + 1) {
+                        $donnees_show_columns_extra[$u] = $donnees_show_columns_extra[$u] . str_repeat(" ", (strlen($extra) - $strlen_donnees_show_columns_extra));
                     }
                 }
                 if (count($donnees_show_columns_field) === 1) {
                     echo "\033[1;37m\033[40mVoici l'unique champs dans le tableau \033[1;32m" . $table . "\033[1;37m !!\033[0m\n";
-                    echo "\033[40m\033[1;37m|\033[1;34mNom\033[1;37m|\033[1;37m|\033[1;31mType\033[1;37m|\033[1;37m|\033[1;35mNull\033[1;37m|\033[1;37m|\033[1;33mClé\033[1;37m|\033[1;37m|\033[1;36mDefaut\033[1;37m|\033[1;37m|\033[1;37mExtra\033[1;37m|\033[0m\n\n";
+                    echo "\033[40m\033[1;37m|\033[1;34m" . $nom . "\033[1;37m|\033[1;37m|\033[1;31m" . $type . "\033[1;37m|\033[1;37m|\033[1;35m" . $null . "\033[1;37m|\033[1;37m|\033[1;33m" . $key . "\033[1;37m|\033[1;37m|\033[1;36m" . $default . "\033[1;37m|\033[1;37m|\033[1;37m" . $extra . "\033[1;37m|\033[0m\n\n";
                     echo "\033[40m\033[1;37m|\033[1;34m" . array_shift($donnees_show_columns_field) . "\033[1;37m|\033[1;37m|\033[1;31m" . array_shift($donnees_show_columns_type) . "\033[1;37m|\033[1;37m|\033[1;35m" . array_shift($donnees_show_columns_null) . "\033[1;37m|\033[1;37m|\033[1;33m" . array_shift($donnees_show_columns_key) . "\033[1;37m|\033[1;37m|\033[1;36m" . array_shift($donnees_show_columns_default) . "\033[1;37m|\033[1;37m|\033[1;37m" . array_shift($donnees_show_columns_extra) . "\033[1;37m|\033[0m\n";
                 } else {
                     echo "\033[1;37m\033[40mVoici les \033[1;32m" . count($donnees_show_columns_field) ."\033[1;37m champs dans le tableau \033[1;32m" . $table . "\033[1;37m !!\033[0m\n";
-                    echo "\033[40m\033[1;37m|\033[1;34mNom\033[1;37m|\033[1;37m|\033[1;31mType\033[1;37m|\033[1;37m|\033[1;35mNull\033[1;37m|\033[1;37m|\033[1;33mClé\033[1;37m|\033[1;37m|\033[1;36mDefaut\033[1;37m|\033[1;37m|\033[1;37mExtra\033[1;37m|\033[0m\n\n";
+                    echo "\033[40m\033[1;37m|\033[1;34m" . $nom . "\033[1;37m|\033[1;37m|\033[1;31m" . $type . "\033[1;37m|\033[1;37m|\033[1;35m" . $null . "\033[1;37m|\033[1;37m|\033[1;33m" . $key . "\033[1;37m|\033[1;37m|\033[1;36m" . $default . "\033[1;37m|\033[1;37m|\033[1;37m" . $extra . "\033[1;37m|\033[0m\n\n";
                     for ($o = 0; $o < count($donnees_show_columns_field); $o = $o + 1) {
                         echo "\033[40m\033[1;37m|\033[1;34m" . $donnees_show_columns_field[$o] . "\033[1;37m|\033[1;37m|\033[1;31m" . $donnees_show_columns_type[$o] . "\033[1;37m|\033[1;37m|\033[1;35m" . $donnees_show_columns_null[$o] . "\033[1;37m|\033[1;37m|\033[1;33m" . $donnees_show_columns_key[$o] . "\033[1;37m|\033[1;37m|\033[1;36m" . $donnees_show_columns_default[$o] . "\033[1;37m|\033[1;37m|\033[1;37m" . $donnees_show_columns_extra[$o] . "\033[1;37m|\033[0m\n";
                     }
