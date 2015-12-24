@@ -112,10 +112,10 @@ function Mysql_Show_columns($host, $username, $password, $database, $table)
     try {
         $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
-        $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege = $bdd->prepare("SELECT Select_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
         $donnees_privilege = $requete_privilege->fetch();
-        if (strtoupper($donnees_privilege["select_priv"]) === "N") {
+        if (strtoupper($donnees_privilege["Select_priv"]) === "N") {
             echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits de selection dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
         } else {
             $requete_find_table = $bdd->query("SHOW TABLES");
@@ -309,10 +309,10 @@ function Mysql_Rename_table($host, $username, $password, $database, $old_table_n
     try {
         $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
-        $requete_privilege = $bdd->prepare("SELECT insert_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege = $bdd->prepare("SELECT Insert_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
         $donnees_privilege = $requete_privilege->fetch();
-        if (strtoupper($donnees_privilege["insert_priv"]) === "N") {
+        if (strtoupper($donnees_privilege["Insert_priv"]) === "N") {
             echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits d'insertion dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
         } else {
             $requete_find_table = $bdd->query("SHOW TABLES");
@@ -376,10 +376,10 @@ function Mysql_Show_tables($host, $username, $password, $database)
     try {
         $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
-        $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege = $bdd->prepare("SELECT Select_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
         $donnees_privilege = $requete_privilege->fetch();
-        if (strtoupper($donnees_privilege["select_priv"]) === "N") {
+        if (strtoupper($donnees_privilege["Select_priv"]) === "N") {
             echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits de séléction dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
         } else {
             $requete_table = $bdd->query("SHOW TABLES");
@@ -438,10 +438,10 @@ function Mysql_Show_database($host, $username, $password)
     try {
         $bdd = new PDO("mysql:host=" . $host . ";", $username, $password);
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
-        $requete_privilege = $bdd->prepare("SELECT select_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege = $bdd->prepare("SELECT Select_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
         $donnees_privilege = $requete_privilege->fetch();
-        if (strtoupper($donnees_privilege["select_priv"]) === "N") {
+        if (strtoupper($donnees_privilege["Select_priv"]) === "N") {
             echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits de séléction dans \033[1;32m" . $host ." \033[1;33m!!\033[0m\n";
         } else {
             $requete_database = $bdd->prepare("SHOW DATABASES;");
@@ -505,10 +505,10 @@ function Mysql_Create_table($host, $username, $password, $database, $table, $num
     try {
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
         $bdd = new PDO("mysql:host=" . $host . ";dbname=" . $database, $username, $password);
-        $requete_privilege = $bdd->prepare("SELECT insert_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege = $bdd->prepare("SELECT Insert_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
         $donnees_privilege = $requete_privilege->fetch();
-        if (strtoupper($donnees_privilege["insert_priv"]) === "N") {
+        if (strtoupper($donnees_privilege["Insert_priv"]) === "N") {
             echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits pour crée un tableau !!\033[0m\n";
         } else {
             echo "\033[40m\033[1;32mBase de donnée trouvée !!\033[0m\n";
@@ -648,10 +648,10 @@ function Mysql_Create_database($host, $username, $password, $database)
     try {
         $bdd = new PDO("mysql:host=" . $host . ";", $username, $password);
         echo "\033[1;37m\033[40mVerification des droits...\033[0m\n";
-        $requete_privilege = $bdd->prepare("SELECT insert_priv FROM mysql.user WHERE user = '" . $username . "';");
+        $requete_privilege = $bdd->prepare("SELECT Insert_priv FROM mysql.user WHERE user = '" . $username . "';");
         $requete_privilege->execute();
         $donnees_privilege = $requete_privilege->fetch();
-        if (strtoupper($donnees_privilege["insert_priv"]) === "N") {
+        if (strtoupper($donnees_privilege["Insert_priv"]) === "N") {
             echo "\033[1;33m\033[40mErreur !! \033[1;31m" . $username . "\033[1;33m n'a pas les droits pour crée une base de donnée !!\033[0m\n";
         } else {
             $bdd->exec("CREATE DATABASE IF NOT EXISTS `$database`;");
